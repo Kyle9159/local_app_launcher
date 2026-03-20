@@ -30,8 +30,8 @@ module.exports = [
     dir: `${home}/repos/Study_Planner`,
     cmd: 'npm',
     args: ['run', 'dev'],
-    port: 5173,
-    url: 'http://localhost:5173',
+    port: 5175,
+    url: 'http://localhost:5175',
   },
   {
     id: 'job-ops',
@@ -42,8 +42,10 @@ module.exports = [
     dir: `${home}/repos/job-ops/orchestrator`,
     cmd: 'npm',
     args: ['run', 'dev'],
-    port: 3000,
-    url: 'http://localhost:3000',
+    // npm run dev runs concurrently: server on PORT (default 3001) + Vite client on 5173
+    port: 5173,
+    url: 'http://localhost:5173',
+    env: { PORT: '3001' },
   },
   {
     id: 'ai-pulse',
@@ -66,8 +68,9 @@ module.exports = [
     dir: `${home}/repos/supplement_explorer`,
     cmd: 'npm',
     args: ['run', 'dev'],
-    port: 3000,
-    // Note: same port as job-ops — only run one at a time, or change one's port
-    url: 'http://localhost:3000',
+    // Next.js respects PORT env var — use 3004 to avoid conflicts
+    port: 3004,
+    url: 'http://localhost:3004',
+    env: { PORT: '3004' },
   },
 ];

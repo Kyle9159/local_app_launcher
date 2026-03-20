@@ -8,26 +8,29 @@ LAUNCHER_DIR="$(cd "$(dirname "$0")" && pwd)"
 PORT=4321
 URL="http://localhost:${PORT}"
 
-# Check if already running
+# Kill any existing instance so config changes always take effect
 if lsof -ti:${PORT} > /dev/null 2>&1; then
-  echo "⚡ Launcher already running at ${URL}"
+  echo "🔄 Restarting App Launcher…"
+  lsof -ti:${PORT} | xargs kill -9 2>/dev/null || true
+  sleep 0.5
 else
   echo "🚀 Starting App Launcher…"
-  cd "$LAUNCHER_DIR"
-  # Use the node from nvm if available
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh" --no-use 2>/dev/null || true
-  nohup node server.js >> /tmp/app-launcher.log 2>&1 &
-  echo "   PID $! — log at /tmp/app-launcher.log"
-  # Wait for it to boot
-  for i in {1..15}; do
-    sleep 0.5
-    if lsof -ti:${PORT} > /dev/null 2>&1; then
-      echo "   Ready."
-      break
-    fi
-  done
 fi
+
+cd "$LAUNCHER_DIR"
+# Use the node from nvm if available
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh" --no-use 2>/dev/null || true
+nohup node server.js >> /tmp/app-launcher.log 2>&1 &
+echo "   PID $! — log at /tmp/app-launcher.log"
+# Wait for it to boot
+for i in {1..15}; do
+  sleep 0.5
+  if lsof -ti:${PORT} > /dev/null 2>&1; then
+    echo "   Ready."
+    break
+  fi
+done
 
 # Open in Chrome app-mode (feels like a native desktop window)
 echo "🌐 Opening dashboard…"

@@ -375,10 +375,35 @@ async function loadApps() {
     const res = await fetch('/api/apps');
     apps = await res.json();
     renderList();
-    if (selectedId) updateDetail(apps.find(a => a.id === selectedId));
+    if (selectedId) lightUpdateDetail(apps.find(a => a.id === selectedId));
   } catch (e) {
     console.error('Failed to load apps', e);
   }
+}
+
+// Update only status/buttons without destroying the log pane
+function lightUpdateDetail(app) {
+  if (!app) return;
+  const statusEl = document.querySelector('.detail-status');
+  if (statusEl) {
+    statusEl.className = `detail-status ${app.running ? 'running' : 'stopped'}`;
+    statusEl.textContent = (app.running ? '● Running' : '○ Stopped') + (app.port ? ` on :${app.port}` : '');
+  }
+  const actionBtn = document.getElementById('d-action');
+  if (actionBtn) {
+    if (app.running) {
+      actionBtn.className = 'btn btn-stop';
+      actionBtn.textContent = '■ Stop';
+      actionBtn.onclick = () => stopApp(app.id);
+    } else {
+      actionBtn.className = 'btn btn-start';
+      actionBtn.style.background = colorVar(app);
+      actionBtn.textContent = '▶ Start';
+      actionBtn.onclick = () => startApp(app.id);
+    }
+  }
+  const openBtn = document.getElementById('d-open');
+  if (openBtn) openBtn.disabled = !app.running;
 }
 
 function colorVar(app) {

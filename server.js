@@ -93,6 +93,7 @@ app.post('/api/apps/:id/start', (req, res) => {
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: a.shell === true,
+    detached: true, // makes child a process group leader so we can kill all descendants
   });
 
   s.process = child;
@@ -131,13 +132,16 @@ app.post('/api/apps/:id/stop', (req, res) => {
 
   pushLog(a.id, `■ Stopping ${a.name}…`);
 
-  // Send SIGTERM first, then SIGKILL after 3s
+  // Kill the entire process group (catches grandchildren like next dev, vite, etc.)
   const child = s.process;
-  child.kill('SIGTERM');
+  const killGroup = (sig) => {
+    try { process.kill(-child.pid, sig); } catch (_) { try { child.kill(sig); } catch (__) {} }
+  };
+  killGroup('SIGTERM');
   const killTimer = setTimeout(() => {
     if (s.process === child) {
       pushLog(a.id, '■ Force-killing…');
-      child.kill('SIGKILL');
+      killGroup('SIGKILL');
     }
   }, 3000);
   child.on('close', () => clearTimeout(killTimer));
@@ -177,7 +181,7 @@ function stopAll() {
   for (const id of Object.keys(state)) {
     const s = state[id];
     if (s.process && s.process.exitCode === null) {
-      s.process.kill('SIGTERM');
+      try { process.kill(-s.process.pid, 'SIGTERM'); } catch (_) { s.process.kill('SIGTERM'); }
     }
   }
 }

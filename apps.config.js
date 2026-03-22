@@ -12,11 +12,11 @@ module.exports = [
     icon: '📈',
     color: '#4ade80',
     dir: `${home}/repos/csp_options_app`,
-    // Use the venv python directly
-    cmd: `${home}/repos/csp_options_app/.venv/bin/python`,
+    // Managed by LaunchAgent — server auto-starts on login, no cmd needed
+    cmd: `${home}/repos/csp_options_app/.venv/bin/python3.14`,
     args: ['dashboard_server.py'],
-    port: 5000,
-    url: 'http://localhost:5000',
+    port: 5001,
+    url: 'https://127.0.0.1:5001',
     env: {
       VIRTUAL_ENV: `${home}/repos/csp_options_app/.venv`,
     },

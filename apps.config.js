@@ -15,8 +15,8 @@ module.exports = [
     // Managed by LaunchAgent — server auto-starts on login, no cmd needed
     cmd: `${home}/repos/csp_options_app/.venv/bin/python3.14`,
     args: ['dashboard_server.py'],
-    port: 5002,
-    url: 'https://127.0.0.1:5002',
+    port: 5000,
+    url: 'https://127.0.0.1:5000',
     env: {
       VIRTUAL_ENV: `${home}/repos/csp_options_app/.venv`,
     },

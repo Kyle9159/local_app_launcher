@@ -12,9 +12,9 @@ module.exports = [
     icon: '📈',
     color: '#4ade80',
     dir: `${home}/repos/csp_options_app`,
-    // Managed by LaunchAgent — server auto-starts on login, no cmd needed
-    cmd: `${home}/repos/csp_options_app/.venv/bin/python3.14`,
-    args: ['dashboard_server.py'],
+    // Force arm64 — Python is a fat binary; without this it can launch as x86_64 via Rosetta
+    cmd: '/usr/bin/arch',
+    args: ['-arm64', `${home}/repos/csp_options_app/.venv/bin/python3.14`, 'dashboard_server.py'],
     port: 5000,
     url: 'https://127.0.0.1:5000',
     env: {

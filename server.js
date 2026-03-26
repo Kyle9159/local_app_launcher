@@ -3,6 +3,7 @@
 
 const express = require('express');
 const { spawn } = require('child_process');
+const fs = require('fs');
 const net = require('net');
 const path = require('path');
 const os = require('os');
@@ -34,6 +35,48 @@ function pushLog(id, line) {
 function isRunning(id) {
   const s = state[id];
   return s.process !== null && s.process.exitCode === null;
+}
+
+function getNodeBinDirs() {
+  const nodeBins = [];
+  const versionsDir = path.join(os.homedir(), '.nvm', 'versions', 'node');
+
+  try {
+    const versions = fs.readdirSync(versionsDir).sort();
+    for (const version of versions) {
+      const binDir = path.join(versionsDir, version, 'bin');
+      if (fs.existsSync(binDir)) nodeBins.push(binDir);
+    }
+  } catch (_) {
+    return [];
+  }
+
+  return nodeBins.reverse();
+}
+
+function buildSpawnPath(env) {
+  const basePath = env.PATH || process.env.PATH || '/usr/bin:/bin:/usr/sbin:/sbin';
+  const pathEntries = basePath.split(path.delimiter).filter(Boolean);
+  const combined = [...getNodeBinDirs(), ...pathEntries];
+  return [...new Set(combined)].join(path.delimiter);
+}
+
+function resolveExecutable(cmd, env) {
+  if (!cmd) return cmd;
+  if (path.isAbsolute(cmd) || cmd.includes('/')) return cmd;
+
+  const searchPath = buildSpawnPath(env).split(path.delimiter);
+  for (const dir of searchPath) {
+    const candidate = path.join(dir, cmd);
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return candidate;
+    } catch (_) {
+      // Continue searching.
+    }
+  }
+
+  return cmd;
 }
 
 // ─── Port check ───────────────────────────────────────────────────────────────
@@ -85,10 +128,13 @@ app.post('/api/apps/:id/start', (req, res) => {
       ? `${a.env.VIRTUAL_ENV}/bin:${process.env.PATH}`
       : process.env.PATH,
   };
+  env.PATH = buildSpawnPath(env);
+
+  const resolvedCmd = resolveExecutable(a.cmd, env);
 
   pushLog(a.id, `▶ Starting ${a.name}…`);
 
-  const child = spawn(a.cmd, a.args, {
+  const child = spawn(resolvedCmd, a.args, {
     cwd: a.dir,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],

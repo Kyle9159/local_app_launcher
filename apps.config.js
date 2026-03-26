@@ -15,8 +15,8 @@ module.exports = [
     // Force arm64 — Python is a fat binary; without this it can launch as x86_64 via Rosetta
     cmd: '/usr/bin/arch',
     args: ['-arm64', `${home}/repos/csp_options_app/.venv/bin/python3.14`, 'dashboard_server.py'],
-    port: 5000,
-    url: 'https://127.0.0.1:5000',
+    port: 5101,
+    url: 'https://127.0.0.1:5101',
     env: {
       VIRTUAL_ENV: `${home}/repos/csp_options_app/.venv`,
     },
